@@ -1,0 +1,26 @@
+# Entorno virtual
+.venv
+venv
+env
+.env
+
+# Archivos de compilación de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Archivos de configuración del IDE
+.idea/
+.vscode/
+
+# Archivos de base de datos
+*.sqlite3
+
+# Archivos generados por la documentación
+docs/_build/
+
+# Archivos de registro
+*.log
+
+# Archivos temporales
+tmp/

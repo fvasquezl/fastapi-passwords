@@ -10,4 +10,4 @@ class CategoryDB(Base):
     name = Column(String(45))
     slug = Column(String(45))
 
-    passwords = relationship("PasswordDB", back_populates="category")
+    posts = relationship("Post", back_populates="category")

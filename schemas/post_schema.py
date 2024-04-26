@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 
-class PasswordBase(BaseModel):
+class PostBase(BaseModel):
     name: str
     slug: str
     extract: str
@@ -11,12 +11,12 @@ class PasswordBase(BaseModel):
     user_id: int
 
 
-class PasswordCreate(PasswordBase):
+class PostCreate(PostBase):
     pass
 
 
-class Password(PasswordBase):
+class Post(PostBase):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True

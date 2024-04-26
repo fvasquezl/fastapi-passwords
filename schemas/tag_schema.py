@@ -10,9 +10,9 @@ class Tag(TagBase):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
-class PasswordTag(BaseModel):
-    password_id: int
+class PostTag(BaseModel):
+    post_id: int
     tag_id: int

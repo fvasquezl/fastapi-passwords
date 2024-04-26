@@ -3,7 +3,7 @@ from config.database import Base
 from sqlalchemy.orm import relationship
 
 
-class UserDB(Base):
+class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -12,4 +12,4 @@ class UserDB(Base):
     password = Column(String(45))
     create_at = Column(DateTime)
 
-    passwords = relationship("PasswordDB", back_populates="user")
+    posts = relationship("Post", back_populates="user")
