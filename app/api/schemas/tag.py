@@ -6,6 +6,10 @@ class TagBase(BaseModel):
     slug: str
 
 
+class TagCreate(TagBase):
+    pass
+
+
 class Tag(TagBase):
     id: int
 
