@@ -9,6 +9,10 @@ uvicorn = "*"
 sqlalchemy = "*"
 pydantic = "*"
 python-slugify = "*"
+pydantic-settings = "*"
+python-jose = {extras = ["cryptography"], version = "*"}
+passlib = {extras = ["bcrypt"], version = "*"}
+python-dotenv = "*"
 
 [dev-packages]
 
