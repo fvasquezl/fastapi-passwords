@@ -1,3 +1,5 @@
+from datetime import datetime
+from typing import Optional
 from pydantic import BaseModel
 
 
@@ -12,7 +14,8 @@ class UserCreate(UserBase):
 
 class User(UserBase):
     id: int
-    create_at: str
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
