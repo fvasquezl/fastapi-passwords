@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from app.core.database import Base, engine
-from app.api.v1.models import category, post, tag, user
+from app.api.v1.models import category, post, tag, user, token
 from app.api.v1.endpoints import users, posts, categories, tags
 
 api_router = APIRouter()

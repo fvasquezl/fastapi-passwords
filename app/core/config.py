@@ -22,3 +22,8 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+# auth/oauth2.py
+# auth/jwt_handler.py
+# auth/jwt_bearer.py
