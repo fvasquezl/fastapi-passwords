@@ -1,66 +1,65 @@
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.api.v1.models.user import DBUser
-from app.api.schemas.user import UserCreate, User
+from app.api.schemas.user import (
+    UserCreate,
+    UserUpdate,
+    User,
+    create_db_user,
+    delete_db_user,
+    get_all_users,
+    get_db_user,
+    update_db_user,
+)
 from app.core.database import get_db
 from app.core.hashing import Hasher
 
 router = APIRouter()
 
+"""
+{
+  "username": "faustino",
+  "email": "fvasquez@local.com",
+  "full_name": "Faustino Vasquez",
+  "password": "123456"
+}
+{
+  "username": "Sebas",
+  "email": "sebas@local.com",
+  "full_name": "Sebastian Vasquez",
+  "password": "123456"
+}
+
+"""
+
+
+@router.get("/", response_model=List[User])
+def get_user(db: Session = Depends(get_db)):
+    db_users = get_all_users(db)
+    return db_users
+
 
 @router.post("/", response_model=User, status_code=status.HTTP_201_CREATED)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = db.query(DBUser).filter(DBUser.email == user.email).first()
-    if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-
-    hashed_password = Hasher.get_password_hash(user.password)
-    db_user = User(
-        email=user.email,
-        first_name=user.first_name,
-        last_name=user.last_name,
-        hashed_password=hashed_password,
-    )
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
+    db_user = create_db_user(user, db)
+    return User(**db_user.__dict__)
 
 
 @router.get("/{user_id}", response_model=User)
 def get_user(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(DBUser).filter(DBUser.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
+    db_user = get_db_user(user_id, db)
+    return db_user
 
 
 @router.put("/{user_id}", response_model=User)
-def update_user(user_id: int, user: UserCreate, db: Session = Depends(get_db)):
-    db_user = db.query(DBUser).filter(DBUser.id == user_id).first()
-    if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    # Actualiza los campos del usuario
-    db_user.email = user.email
-    db_user.first_name = user.first_name
-    db_user.last_name = user.last_name
-
-    # Si se proporciona una nueva contraseña, hashearla y actualizarla
-    if user.password:
-        db_user.hashed_password = Hasher.get_password_hash(user.password)
-
-    db.commit()
-    db.refresh(db_user)
+def update_user(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
+    db_user = update_db_user(user_id, user, db)
     return db_user
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(user_id: int, db: Session = Depends(get_db)):
-    db_user = db.query(DBUser).filter(DBUser.id == user_id).first()
-    if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    db.delete(db_user)
-    db.commit()
+    db_user = delete_db_user(user_id, db)
+    return db_user

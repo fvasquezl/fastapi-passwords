@@ -6,64 +6,85 @@ from app.api.v1.models.user import DBUser
 from sqlalchemy.orm import Session
 
 from app.auth.security import get_password_hash
+from app.core.hashing import Hasher
 
 
 class UserBase(BaseModel):
+    username: str
     email: EmailStr
-    first_name: str
-    last_name: str
+    full_name: str | None = None
 
 
 class UserCreate(UserBase):
     password: str
 
 
+class UserUpdate(UserBase):
+    password: Optional[str] = None
+    is_active: Optional[bool] = True
+
+
 class User(UserBase):
     id: int
-    is_active: bool
+    is_active: bool = True
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
-# def read_db_user(user_id: int, session: Session) -> DBUser:
-#     db_user = session.query(DBUser).filter(DBUser.id == user_id).first()
-#     if db_user is None:
-#         raise FileNotFoundError(f"user with id {user_id} not found.")
-#     return db_user
+# Get All Users
+def get_all_users(db: Session):
+    try:
+        db_users = db.query(DBUser).all()
+        return db_users
+    except Exception as e:
+        db.rollback()
+        raise e
 
 
-# def create_db_user(user: UserCreate, db: Session) -> DBUser:
-#     # Verificar si el email ya existe
-#     db_user = db.query(DBUser).filter(DBUser.email == user.email).first()
-#     if db_user:
-#         raise HTTPException(status_code=400, detail="Email already registered")
+# Create User
+def create_db_user(user: UserCreate, db: Session):
+    db_user = db.query(DBUser).filter(DBUser.email == user.email).first()
+    if db_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
 
-#     # Hashear la contraseña
-#     password = get_password_hash(user.password)
-
-#     # Crear el nuevo usuario
-#     new_user = DBUser(
-#         name: user.name,
-#         email: user.email,
-#         password=hashed_password,
-#         full_name: str | None = None
+    db_user = DBUser(**user.model_dump(exclude="password"))
+    db_user.hashed_password = Hasher.get_password_hash(user.password)
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
 
 
-#         email=user.email,
-#         first_name=user.first_name,
-#         last_name=user.last_name,
-
-#         is_active=True,
-#     )
-#     db.add(new_user)
-#     db.commit()
-#     db.refresh(new_user)
+def get_db_user(user_id: int, db: Session):
+    db_user = db.query(DBUser).filter(DBUser.id == user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return db_user
 
 
-# db_user = DBUser(**user.model_dump(exclude_none=True))
-# db_user.hashed_password = Hasher.get_password_hash(user.hashed_password)
-# session.add(db_user)
-# session.commit()
-# session.refresh(db_user)
-# return db_user
+def update_db_user(user_id: int, user: UserUpdate, db: Session):
+    db_user = db.query(DBUser).filter(DBUser.id == user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    for key, value in user.model_dump(exclude_none=True).items():
+        setattr(db_user, key, value)
+
+    # Si se proporciona una nueva contraseña, hashearla y actualizarla
+    if user.password:
+        db_user.hashed_password = Hasher.get_password_hash(user.password)
+
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+
+def delete_db_user(user_id: int, db: Session):
+    db_user = db.query(DBUser).filter(DBUser.id == user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    db.delete(db_user)
+    db.commit()
+    return db_user
