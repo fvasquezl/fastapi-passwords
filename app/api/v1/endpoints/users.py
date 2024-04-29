@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.api.v1.models import User
+from app.api.v1.models.user import DBUser
 from app.api.schemas.user import UserCreate, User
 from app.core.database import get_db
 from app.core.hashing import Hasher
@@ -11,7 +11,7 @@ router = APIRouter()
 
 @router.post("/", response_model=User, status_code=status.HTTP_201_CREATED)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.email == user.email).first()
+    db_user = db.query(DBUser).filter(DBUser.email == user.email).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
 
@@ -30,7 +30,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
 @router.get("/{user_id}", response_model=User)
 def get_user(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.id == user_id).first()
+    user = db.query(DBUser).filter(DBUser.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
@@ -38,7 +38,7 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 
 @router.put("/{user_id}", response_model=User)
 def update_user(user_id: int, user: UserCreate, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.id == user_id).first()
+    db_user = db.query(DBUser).filter(DBUser.id == user_id).first()
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -58,7 +58,7 @@ def update_user(user_id: int, user: UserCreate, db: Session = Depends(get_db)):
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(user_id: int, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.id == user_id).first()
+    db_user = db.query(DBUser).filter(DBUser.id == user_id).first()
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
 

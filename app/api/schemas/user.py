@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 from fastapi import HTTPException
 from pydantic import BaseModel, EmailStr
-from app.api.v1.models import DBUser
+from app.api.v1.models.user import DBUser
 from sqlalchemy.orm import Session
 
 from app.auth.security import get_password_hash

@@ -7,9 +7,10 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 from app.core.config import settings
-from app.api.v1.models.user import User
+from app.api.v1.models.user import DBUser
 from app.core.database import get_db
 from app.api.schemas.token import TokenData
+from sqlalchemy.orm import Session
 
 # Configuración de seguridad
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
@@ -56,7 +57,7 @@ async def get_current_user(
         token_data = TokenData(email=email)
     except JWTError:
         raise credentials_exception
-    user = db.query(User).filter(User.email == token_data.email).first()
+    user = db.query(DBUser).filter(DBUser.email == token_data.email).first()
     if user is None:
         raise credentials_exception
     return user
