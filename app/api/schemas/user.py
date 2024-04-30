@@ -58,7 +58,6 @@ def create_db_user(user: UserCreate, db: Session):
         raise HTTPException(status_code=400, detail="Email already registered")
 
     db_user = DBUser(**user.model_dump(exclude=None))
-    # db_user.hashed_password = Hasher.get_password_hash(user.password)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)

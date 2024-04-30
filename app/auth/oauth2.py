@@ -13,7 +13,7 @@ from app.api.schemas.token import TokenData
 from sqlalchemy.orm import Session
 
 # Configuración de seguridad
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
