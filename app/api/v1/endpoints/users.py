@@ -18,22 +18,6 @@ from app.core.hashing import Hasher
 
 router = APIRouter()
 
-"""
-{
-  "username": "faustino",
-  "email": "fvasquez@local.com",
-  "full_name": "Faustino Vasquez",
-  "password": "123456"
-}
-{
-  "username": "Sebas",
-  "email": "sebas@local.com",
-  "full_name": "Sebastian Vasquez",
-  "password": "123456"
-}
-
-"""
-
 
 @router.get("/", response_model=List[User])
 def get_user(db: Session = Depends(get_db)):

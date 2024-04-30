@@ -1,22 +1,31 @@
 from datetime import datetime
-from typing import Optional
+from typing import Any, Dict, Optional
 from fastapi import HTTPException
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from app.api.v1.models.user import DBUser
 from sqlalchemy.orm import Session
+from app.core.validator import UniqueEmailStr
 
 from app.auth.security import get_password_hash
 from app.core.hashing import Hasher
 
 
+#
 class UserBase(BaseModel):
     username: str
-    email: EmailStr
+    email: UniqueEmailStr
     full_name: str | None = None
 
 
 class UserCreate(UserBase):
     password: str
+
+    # Encriptar el Password
+    def model_dump(self, **kwargs) -> Dict[str, Any]:
+        data = super().model_dump(**kwargs)
+        data.pop("password")
+        data["hashed_password"] = Hasher.get_password_hash(self.password)
+        return data
 
 
 class UserUpdate(UserBase):
@@ -48,8 +57,8 @@ def create_db_user(user: UserCreate, db: Session):
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    db_user = DBUser(**user.model_dump(exclude="password"))
-    db_user.hashed_password = Hasher.get_password_hash(user.password)
+    db_user = DBUser(**user.model_dump(exclude=None))
+    # db_user.hashed_password = Hasher.get_password_hash(user.password)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
@@ -68,12 +77,9 @@ def update_db_user(user_id: int, user: UserUpdate, db: Session):
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    for key, value in user.model_dump(exclude_none=True).items():
+    # Iterar sobre los datos de actualización y actualizar los valores
+    for key, value in user.model_dump(exclude_unset=True).items():
         setattr(db_user, key, value)
-
-    # Si se proporciona una nueva contraseña, hashearla y actualizarla
-    if user.password:
-        db_user.hashed_password = Hasher.get_password_hash(user.password)
 
     db.commit()
     db.refresh(db_user)
