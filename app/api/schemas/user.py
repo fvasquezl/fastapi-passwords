@@ -4,16 +4,17 @@ from pydantic import BaseModel
 
 
 class UserBase(BaseModel):
-    name: str
+    username: str
     email: str
 
 
 class UserCreate(UserBase):
-    password: str
+    hashed_password: str
 
 
 class User(UserBase):
     id: int
+    is_disabled: bool | None = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
