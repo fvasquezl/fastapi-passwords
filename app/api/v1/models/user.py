@@ -13,7 +13,7 @@ class DBUser(TimeStampedModel):
     username: Mapped[str] = mapped_column(String)
     email: Mapped[str] = mapped_column(String)
     hashed_password: Mapped[str] = mapped_column(String)
-    is_disabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    is_disabled: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Relacion con Post
     posts: Mapped[List[DBPost]] = relationship(back_populates="owner")

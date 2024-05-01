@@ -13,6 +13,7 @@ pydantic-settings = "*"
 python-jose = {extras = ["cryptography"], version = "*"}
 passlib = {extras = ["bcrypt"], version = "*"}
 python-dotenv = "*"
+python-multipart = "*"
 
 [dev-packages]
 

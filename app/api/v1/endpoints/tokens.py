@@ -1,10 +1,11 @@
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app.api.schemas.token import Token
+from app.api.v1.models.token import DBToken
 from app.api.v1.models.user import DBUser
 from app.auth.jwt_handler import create_access_token
 from app.core.config import settings
@@ -17,15 +18,15 @@ router = APIRouter()
 @router.post("/", response_model=Token)
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
-):
-    user = db.query(DBUser).filter(DBUser.email == form_data.username).first()
-    if not user:
+) -> Token:
+    db_user = db.query(DBUser).filter(DBUser.email == form_data.username).first()
+    if not db_user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    if not Hasher.verify_password(form_data.password, user.hashed_password):
+    if not Hasher.verify_password(form_data.password, db_user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -33,11 +34,17 @@ async def login_for_access_token(
         )
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.email}, expires_delta=access_token_expires
+        data={"sub": db_user.email}, expires_delta=access_token_expires
     )
+    expires_at = datetime.now(timezone.utc) + access_token_expires
 
     # Guarda el token en la base de datos
-    db_token = Token(access_token=access_token, token_type="bearer", user_id=user.id)
+    db_token = DBToken(
+        access_token=access_token,
+        token_type="bearer",
+        user_id=db_user.id,
+        expires_at=expires_at,
+    )
     db.add(db_token)
     db.commit()
     db.refresh(db_token)
